@@ -1,5 +1,6 @@
 import { IsEnum, IsOptional } from 'class-validator';
 import { challengeEnum } from '../interfaces/challenge-status.enum';
+import { Match } from '../interfaces/challenge.interface';
 
 export class UpdateChallengeDto {
   @IsOptional()
@@ -8,4 +9,7 @@ export class UpdateChallengeDto {
 
   @IsOptional()
   datetimeChallenge: Date;
+
+  @IsOptional()
+  match: Match;
 }

@@ -24,6 +24,10 @@ export class ChallengesService {
     return this.getAll();
   }
 
+  getChallengeById(_id: any): Promise<Challenge> {
+    return this.getById(_id);
+  }
+
   getChallengesByParams(playerId: string): Promise<Challenge[]> {
     return this.getByParams(playerId);
   }
@@ -34,6 +38,10 @@ export class ChallengesService {
 
   deleteChallenge(_id: string): Promise<void> {
     return this.delete(_id);
+  }
+
+  accomplishChallenge(_id: string, matchId: string): Promise<Challenge> {
+    return this.accomplish(_id, matchId);
   }
 
   // ---------------------------------------------------------------------------------------------------
@@ -71,6 +79,10 @@ export class ChallengesService {
     return await challenge.save();
   }
 
+  private async getById(_id: string): Promise<Challenge> {
+    return await this.challengeModel.findById(_id).exec();
+  }
+
   private async getAll(): Promise<Challenge[]> {
     return await this.challengeModel
       .find()
@@ -105,6 +117,7 @@ export class ChallengesService {
     if (updateChallengeDto.status) {
       challenge.datetimeResponse = new Date();
     }
+
     challenge.status = updateChallengeDto.status;
     challenge.datetimeChallenge = updateChallengeDto.datetimeChallenge;
 
@@ -119,5 +132,26 @@ export class ChallengesService {
       throw new BadRequestException(`No challenge found with id ${_id}`);
     }
     return await this.challengeModel.findOneAndDelete({ _id }).exec();
+  }
+
+  private async accomplish(_id: string, matchId: string): Promise<Challenge> {
+    const challenge = await this.challengeModel.findById(_id).exec();
+
+    if (!challenge) {
+      throw new BadRequestException(`No challenge found with id ${_id}`);
+    }
+
+    return await this.challengeModel
+      .findOneAndUpdate(
+        { _id },
+        {
+          $set: {
+            status: challengeEnum.ACCOMPLISHED,
+            match: matchId,
+          },
+        },
+        { new: true },
+      )
+      .exec();
   }
 }
