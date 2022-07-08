@@ -3,7 +3,7 @@ import { CreateCategoryDto } from './dtos/create-category.dto';
 import { Category } from './interfaces/category.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UpdateCategory } from './dtos/update-category.dto';
+import { UpdateCategoryDto } from './dtos/update-category.dto';
 import { PlayersService } from 'src/players/players.service';
 
 @Injectable()
@@ -29,8 +29,8 @@ export class CategoriesService {
     return this.getById(_id);
   }
 
-  updateCategory(_id: string, updateCategory: UpdateCategory): Promise<Category> {
-    return this.update(_id, updateCategory);
+  updateCategory(_id: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
+    return this.update(_id, updateCategoryDto);
   }
 
   deleteCategory(_id: string): Promise<void> {
@@ -39,6 +39,10 @@ export class CategoriesService {
 
   linkUserToCategory(categoryId: string, playerId: string): Promise<Category> {
     return this.linkToCategory(categoryId, playerId);
+  }
+
+  getCategoryByPlayerId(playerId: any): Promise<Category> {
+    return this.getByPlayerId(playerId);
   }
 
   // ---------------------------------------------------------------------------------------------------
@@ -72,13 +76,13 @@ export class CategoriesService {
     return category;
   }
 
-  private async update(_id: string, updateCategory: UpdateCategory): Promise<Category> {
+  private async update(_id: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
     const category = await this.categoryModel.findOne({ _id }).exec();
     if (!category) {
       throw new NotFoundException(`No cateogry found with id ${_id}`);
     }
     return await this.categoryModel
-      .findOneAndUpdate({ _id }, { $set: updateCategory }, { new: true })
+      .findOneAndUpdate({ _id }, { $set: updateCategoryDto }, { new: true })
       .exec();
   }
 
@@ -113,6 +117,16 @@ export class CategoriesService {
     category.players.push(player);
     return await this.categoryModel
       .findOneAndUpdate({ categoryId }, { $set: category }, { new: true })
+      .exec();
+  }
+
+  private async getByPlayerId(playerId: any): Promise<Category> {
+    return await this.categoryModel
+      .findOne({
+        players: {
+          $elemMatch: { $eq: playerId },
+        },
+      })
       .exec();
   }
 }
